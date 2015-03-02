@@ -1,0 +1,35 @@
+{
+	"dimension_name":"health_factors_and_condition",
+	"attributes_list":[
+		{
+			"attribute_name":"Smoking",
+			"attribute_description":"We may eventually use finer classes that will also reflect the frequency of smoking",
+			"attribute_values_and_range":"Smoker, Non-smoker"
+		},
+		{
+			"attribute_name":"Drinking",
+			"attribute_description":"Alcohol consumption",
+			"attribute_values_and_range":"Non-drinker, social drinker, drinker, alcoholic"
+		},
+		{
+			"attribute_name":"Drug use",
+			"attribute_description":"This includes all types of substances that could be classified as drugs",
+			"attribute_values_and_range":"Yes, No"
+		},
+		{
+			"attribute_name":"Chronic diseases",
+			"attribute_description":"The list is only indicative. Can take multiple values simultaneously.",
+			"attribute_values_and_range":"Diabetes, Epilepsy, Cardiomiopathy, Hypertension,	etc."
+		},
+		{
+			"attribute_name":"Disabilities",
+			"attribute_description":"Different kinds of disabilities (physical, mental, sensory, etc.). The list is only indicative.",
+			"attribute_values_and_range":"Lower limb loss, Vision impairment, Balance disorder, etc."
+		},
+		{
+			"attribute_name":"Other health factors",
+			"attribute_description":"Additional health factors. Likely to be extended. Can take multiple values simultaneously.",
+			"attribute_values_and_range":"Exercise (yes / no), Late night shifts (yes / no), Staying up late (yes / no) "
+		}
+	]
+}

@@ -1,0 +1,50 @@
+{
+	"dimension_name":"demographics",
+	"attributes_list":[
+		{
+			"attribute_name":"Age",
+			"attribute_description":"Rather than using the absolute number of years, it is typical to use age groups.",
+			"attribute_values_and_range":"The following is a preliminary set of age groups: 6-12, 12-18, 15-25, 25-35, 35-45, 45-55, 55-65, 65-75, older than 75 years"
+		},
+		{
+			"attribute_name":"Gender",
+			"attribute_description":"The gender of the user",
+			"attribute_values_and_range":"Male,Female"
+		},
+		{
+			"attribute_name":"Nationality",
+			"attribute_description":"Nationality of the user",
+			"attribute_values_and_range":"French, Belgian, Greek, etc."
+		},
+		{
+			"attribute_name":"Racial origin",
+			"attribute_description":"The racial background of the user.",
+			"attribute_values_and_range":"Asian, African, Caucasian, Latino/Hispanic, Other"
+		},
+		{
+			"attribute_name":"Ethnicity",
+			"attribute_description":"The ethnic origin of the user that could relate to a combination of racial background, language and religion.",
+			"attribute_values_and_range":"List of target ethnicities. e.g. Arabic, Easter-European, etc."
+		},
+		{
+			"attribute_name":"Literacy level",
+			"attribute_description":"Literacy level will be represented by the highest degree or level of school attended.",
+			"attribute_values_and_range":"None, Nursery school, High school, Bachelor’s degree, Master’s degree, Ph.D., Other"
+		},
+		{
+			"attribute_name":"Employment status",
+			"attribute_description":"The employment status of the user",
+			"attribute_values_and_range":"Employed, Unemployed, Retired, Other"
+		},
+		{
+			"attribute_name":"Income level",
+			"attribute_description":"Income level will be represented using a set of qualitative ranges, rather than an absolute number ",
+			"attribute_values_and_range":"Qualitative ranges of monthly income, e.g. a 5-scale range from low to high."
+		},
+		{
+			"attribute_name":"Family status",
+			"attribute_description":"Marital status of the user.",
+			"attribute_values_and_range":"Single, in a relationship, married, separated, other"
+		}
+	]
+}

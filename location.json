@@ -1,0 +1,25 @@
+{
+	"dimension_name":"location",
+	"attributes_list":[
+		{
+			"attribute_name":"Home",
+			"attribute_description":"The place where the user resides. Different levels of accuracy are possible.",
+			"attribute_values_and_range":"City, address, country, GPS "
+		},
+		{
+			"attribute_name":"Work",
+			"attribute_description":"The place where the user works. Different levels of accuracy are possible. ",
+			"attribute_values_and_range":"City, address, country, GPS "
+		},
+		{
+			"attribute_name":"Favourite places",
+			"attribute_description":"Favourite places of the user. Different levels of accuracy are possible. Can take multiple values simultaneously.",
+			"attribute_values_and_range":"City, address, country, GPS "
+		},
+		{
+			"attribute_name":"Visited places",
+			"attribute_description":"Places that the user has visited. Different levels of accuracy are possible. Can take multiple values simultaneously.",
+			"attribute_values_and_range":"City, address, country, GPS "
+		}
+	]
+}

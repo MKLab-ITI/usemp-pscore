@@ -1,0 +1,10 @@
+{
+	"dimension_name":"sexual_preference",
+	"attributes_list":[
+		{
+			"attribute_name":"Sexual preference",
+			"attribute_description":"Sexual preference",
+			"attribute_values_and_range":"Heterosexual, homosexual, bisexual"
+		}
+	]
+}

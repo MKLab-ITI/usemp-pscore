@@ -1,0 +1,30 @@
+{
+	"dimension_name":"psychological_traits",
+	"attributes_list":[
+		{
+			"attribute_name":"Emotional stability",
+			"attribute_description":"This describes the overall reaction of a person to negative emotions.",
+			"attribute_values_and_range":"Sensitive / nervous, Secure / confident"
+		},
+		{
+			"attribute_name":"Agreeableness",
+			"attribute_description":"A measure of one’s trustful and helping nature.",
+			"attribute_values_and_range":"Friendly / compassionate, Analytic / detached"
+		},
+		{
+			"attribute_name":"Extraversion",
+			"attribute_description":"Quite generally, this describes the tendency to seek social interaction.",
+			"attribute_values_and_range":"Outgoing / energetic, Solitary / reserved"
+		},
+		{
+			"attribute_name":"Conscientiousness",
+			"attribute_description":"Planned rather than spontaneous behaviour.",
+			"attribute_values_and_range":"Efficient / organized, Easy going / careless"
+		},
+		{
+			"attribute_name":"Openness",
+			"attribute_description":"Reflects the degree of intellectual curiosity.",
+			"attribute_values_and_range":"Inventive / curious, Consistent / cautious"
+		}
+	]
+}
