@@ -52,7 +52,7 @@ Extra endpoints:
 
 - We provide the `user/list` only `GET` method, that returns all the user objects from the database.
 
-- `user/value/sensitivity`, `user/attribute/sensitivity` and `user/dimension/sensitivity` only `POST` method, gives the posibility to set the **sensitivity** in any of the available levels of the **user object**. When the sensitivity is set on a level higher than the **value** level, the same **sensitivity** is set on the all the level that are below it ins a cascade fasion.
+- `user/value/sensitivity`, `user/attribute/sensitivity` and `user/dimension/sensitivity` only `POST` method, gives the posibility to set the **sensitivity** in any of the available levels of the **user object**. When the sensitivity is set on a level higher than the **value** level, the same **sensitivity** is set on the all the levels below it in a cascade fasion.
 
 
 User Object structure:
