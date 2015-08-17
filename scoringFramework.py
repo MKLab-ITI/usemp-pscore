@@ -17,7 +17,7 @@ except ImportError:
     import os
     parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     os.sys.path.insert(0, parentdir)
-    
+
     from flask.ext.cors import CORS
 
 
@@ -142,16 +142,16 @@ def value_object_for_path(path, dictionary):
 
 
 def get_path_from_data(dictionary):
-    
+
     if dictionary == None:
         return None
-    
+
     path = dictionary['path']
     del dictionary['path']
     if 'value_name' in dictionary.keys():
         path.append(dictionary['value_name'])
         del dictionary['value_name']
-    
+
     list_to_return = []
     for i in range(0, len(path)):
         if i == 0:
@@ -170,7 +170,7 @@ def get_path_from_data(dictionary):
 
 def get_from_dict(data_dict, map_list):
 #    return reduce(lambda d, k: d[k], mapList, dataDict)
-    print(data_dict)
+#    print(data_dict)
     data_to_return = data_dict
     for key in map_list:
         if key in data_to_return:
@@ -207,7 +207,7 @@ def delete(user_id_string, object_id_string):
         result = users_collection.remove({'user_id': user_id_string})
     elif object_id_string != None:
         result = users_collection.remove({'_id': ObjectId(object_id_string)})
-    
+
     if not result:
         return (None, 500)
     elif result["ok"] != 1:
@@ -220,13 +220,15 @@ def delete(user_id_string, object_id_string):
 
 #value level functions
 def read_value(dictionary):
-    return (None, 500)
+
     path_list = get_path_from_data(dictionary)
-    
-    user = read(path_list[0], None)[0]["data"]
+
+    user = read(path_list[0], None)[0]
     if user == None:
         return ("Can't find user {}.".format(str(path_list[0])), 404)
-    
+    else:
+        user = user["data"]
+
     data_to_return = get_from_dict(user, path_list[1:])
 
     if data_to_return == None:
@@ -236,13 +238,15 @@ def read_value(dictionary):
 
 
 def delete_value(dictionary):
-    
+
     path_list = get_path_from_data(dictionary)
-    
-    user = read(path_list[0], None)[0]["data"]
+
+    user = read(path_list[0], None)[0]
     if user == None:
         return ("Can't find user {}.".format(str(path_list[0])), 404)
-    
+    else:
+        user = user["data"]
+
     data_to_delete = get_from_dict(user, path_list[1:-1])
     if path_list[-1] in data_to_delete:
         del data_to_delete[path_list[-1]]
@@ -253,23 +257,25 @@ def delete_value(dictionary):
 
 
 def create_value(dictionary):
-    
+
     path_list = get_path_from_data(dictionary)
-    
+
     object_id = None
-    
-    user = read(path_list[0], None)[0]["data"]
+
+    user = read(path_list[0], None)[0]
     if user == None:
         object_id = users_collection.insert(user_object_for_path(path_list, dictionary))
-        user_object = read(None, object_id)[0]
+        user_object = read(None, object_id)[0]["data"]
         calculate_score(user_object, path_list)
         object_id = users_collection.save(user_object)
-        user_object = read(None, object_id)[0]
+        user_object = read(None, object_id)[0]["data"]
         data_to_return = get_from_dict(user_object, path_list[1:])
         if data_to_return == None:
             return (None, 500)
         else:
             return ({"message": "Created", "status": 200, "data":{path_list[-1]: data_to_return}}, None)
+    else:
+        user = user["data"]
 
     offset = -1
     for i in range(len(path_list), 0, -1):
@@ -287,12 +293,12 @@ def create_value(dictionary):
         get_from_dict(user, path_list[1:offset]).update(attribute_object_for_path(path_list, dictionary))
     elif offset == 2:
         get_from_dict(user, path_list[1:offset]).update(dimension_object_for_path(path_list, dictionary))
-    
+
     calculate_score(user, path_list)
 
     object_id = users_collection.save(user)
-    
-    user_object = read(None, object_id)[0]
+
+    user_object = read(None, object_id)[0]["data"]
     data_to_return = get_from_dict(user_object, path_list[1:])
     if data_to_return == None:
         return (None, 500)
@@ -305,18 +311,20 @@ def update_value(dictionary):
     path_list = get_path_from_data(dictionary)
 
     object_id = None
-    user = read(path_list[0], None)[0]["data"]
+    user = read(path_list[0], None)[0]
     if user == None:
         object_id = users_collection.insert(user_object_for_path(path_list, dictionary))
-        user_object = read(None, object_id)[0]
+        user_object = read(None, object_id)[0]["data"]
         calculate_score(user_object, path_list)
         object_id = users_collection.save(user_object)
-        user_object = read(None, object_id)[0]
+        user_object = read(None, object_id)[0]["data"]
         data_to_return = get_from_dict(user_object, path_list[1:])
         if data_to_return == None:
             return (None, 500)
         else:
             return ({"message": "Updated", "status": 200, "data":{path_list[-1]: data_to_return}}, None)
+    else:
+        user = user["data"]
 
     offset = -1
     for i in range(len(path_list), 0, -1):
@@ -332,12 +340,12 @@ def update_value(dictionary):
         get_from_dict(user, path_list[1:offset]).update(attribute_object_for_path(path_list, dictionary))
     elif offset == 2:
         get_from_dict(user, path_list[1:offset]).update(dimension_object_for_path(path_list, dictionary))
-    
+
     calculate_score(user, path_list)
 
     object_id = users_collection.save(user)
-    
-    user_object = read(None, object_id)[0]
+
+    user_object = read(None, object_id)[0]["data"]
     data_to_return = get_from_dict(user_object, path_list[1:])
     if data_to_return == None:
         return (None, 500)
@@ -350,13 +358,15 @@ def read_value_support(dictionary):
 
     path_list = get_path_from_data(dictionary)
     path_list.append('value_support')
-    
-    user = read(path_list[0], None)[0]["data"]
+
+    user = read(path_list[0], None)[0]
     if user == None:
         return ("Can't find user {}.".format(str(path_list[0])), 404)
+    else:
+        user = user["data"]
 
     data_to_return = get_from_dict(user, path_list[1:])
-    
+
     if data_to_return == None:
         return (None, 404)
 
@@ -377,10 +387,12 @@ def delete_value_support(dictionary):
 
     path_list = get_path_from_data(dictionary)
     path_list.append('value_support')
-    
-    user = read(path_list[0], None)[0]["data"]
+
+    user = read(path_list[0], None)[0]
     if user == None:
         return ("Can't find user {}.".format(str(path_list[0])), 404)
+    else:
+        user = user["data"]
 
     data_to_delete = get_from_dict(user, path_list[1:-1])
 
@@ -402,23 +414,25 @@ def delete_value_support(dictionary):
 
 
 def create_value_support(dictionary):
-    
+
     path_list = get_path_from_data(dictionary)
     path_list.append('value_support')
-    
+
     object_id = None
-    user = read(path_list[0], None)[0]["data"]
+    user = read(path_list[0], None)[0]
     if user == None:
         object_id = users_collection.insert(user_object_for_path(path_list, dictionary))
-        user_object = read(None, object_id)[0]
+        user_object = read(None, object_id)[0]["data"]
         calculate_score(user_object, path_list)
         object_id = users_collection.save(user_object)
-        user_object = read(None, object_id)[0]
+        user_object = read(None, object_id)[0]["data"]
         data_to_return = get_from_dict(user_object, path_list[1:])
         if data_to_return == None:
             return (None, 500)
         else:
             return ({"message": "Created", "status": 200, "data":{path_list[-1]: data_to_return}}, None)
+    else:
+        user = user["data"]
 
     offset = -1
     for i in range(len(path_list), 0, -1):
@@ -442,7 +456,7 @@ def create_value_support(dictionary):
     else:
         new_supports = dictionary['value_support']
         supports_to_add = []
-        
+
         for new_sup in new_supports:
             if not any(
                         (sup['support_data_pointer_id'] == new_sup['support_data_pointer_id'])
@@ -458,10 +472,10 @@ def create_value_support(dictionary):
             get_from_dict(user, path_list[1:-1])[path_list[-1]] = supports
 
     calculate_score(user, path_list)
-    
+
     object_id = users_collection.save(user)
 
-    user_object = read(None, object_id)[0]
+    user_object = read(None, object_id)[0]["data"]
     data_to_return = get_from_dict(user_object, path_list[1:])
     if data_to_return == None:
         return (None, 500)
@@ -470,23 +484,25 @@ def create_value_support(dictionary):
 
 
 def update_value_support(dictionary):
-    
+
     path_list = get_path_from_data(dictionary)
     path_list.append('value_support')
-    
+
     object_id = None
-    user = read(path_list[0], None)[0]["data"]
+    user = read(path_list[0], None)[0]
     if user == None:
         object_id = users_collection.insert(user_object_for_path(path_list, dictionary))
-        user_object = read(None, object_id)[0]
+        user_object = read(None, object_id)[0]["data"]
         calculate_score(user_object, path_list)
         object_id = users_collection.save(user_object)
-        user_object = read(None, object_id)[0]
+        user_object = read(None, object_id)[0]["data"]
         data_to_return = get_from_dict(user_object, path_list[1:])
         if data_to_return == None:
             return (None, 500)
         else:
             return ({"message": "Updated", "status": 200, "data":{path_list[-1]: data_to_return}}, None)
+    else:
+        user = user["data"]
 
     offset = -1
     for i in range(len(path_list), 0, -1):
@@ -505,7 +521,7 @@ def update_value_support(dictionary):
 
     new_supports = dictionary['value_support']
     supports_to_remove = []
-    
+
     for new_sup in new_supports:
         for sup in supports:
             if sup['support_data_pointer_id'] == new_sup['support_data_pointer_id']:
@@ -520,7 +536,7 @@ def update_value_support(dictionary):
 
     object_id = users_collection.save(user)
 
-    user_object = read(None, object_id)[0]
+    user_object = read(None, object_id)[0]["data"]
     data_to_return = get_from_dict(user_object, path_list[1:])
     if data_to_return == None:
         return (None, 500)
@@ -535,13 +551,13 @@ def list_users():
 
 def set_sensitivity(dictionary):
     path_list = get_path_from_data(dictionary)
-    
+
     user = read(path_list[0], None)[0]["data"]
     if user == None:
         return ('User {} not found.'.format(str(path_list[0])), 404)
-    
+
     object_in_path = get_from_dict(user, path_list[1:])
-    
+
     if len(path_list) == 7:
         object_in_path['value_sensitivity'] = dictionary['sensitivity']
     elif len(path_list) == 5:
@@ -562,28 +578,32 @@ def set_sensitivity(dictionary):
 
     if object_id != None:
         return ({"message": "Sensitivity changed", "status": 200, "data":[]}, None)
-    
+
     pass
 
 
 def calculate_score(user, path):
     
+    if user == None:
+        return
+
     path_list = list(path)
-    
+
     if path_list[-1] == 'value_support':
         path_list.pop()
-    
+
     attribute = get_from_dict(user, path_list[1:-2])
-    print(path_list[-2:])
+#    print(path_list[-2:])
     value = get_from_dict(attribute, path_list[-2:])
     supports = value['value_support']
-    
+
 #---value_is_inferred calculation
-    if len(supports) > 0:
-        if any(sup['support_inference_mechanism'] == 'declared' for sup in supports):
-            value['value_is_inferred'] = False
-        else:
-            value['value_is_inferred'] = True
+    if supports != None:
+        if len(supports) > 0:
+            if any(sup['support_inference_mechanism'] == 'declared' for sup in supports):
+                value['value_is_inferred'] = False
+            else:
+                value['value_is_inferred'] = True
 
 #---value_confidence calculation
     if value['value_is_inferred'] == False:
@@ -591,18 +611,22 @@ def calculate_score(user, path):
     else:
         all_values = attribute['attribute_values']
         grouped_confidence = {}
-        
+
         for temp_value_key in all_values.keys():
             temp_value = all_values[temp_value_key]
             for temp_support in temp_value['value_support']:
                 key = (temp_support['support_inference_mechanism'], temp_support['support_data_pointer_id'])
-                val = (temp_value_key, temp_value['value_sensitivity'], temp_support['support_confidence'])
+                if temp_value['value_sensitivity'] == None:
+                    sensitivity = 0
+                else:
+                    sensitivity = temp_value['value_sensitivity']
+                val = (temp_value_key, sensitivity, temp_support['support_confidence'])
                 if key in grouped_confidence:
                     grouped_confidence[key].append(val)
                 else:
                     grouped_confidence[key] = [val]
 
-#        keep only obly supports that are in all values
+#        keep only supports that are in all values
         keys_to_remove = []
         for key in grouped_confidence.keys():
             if len(grouped_confidence[key]) != len(all_values.keys()):
@@ -615,9 +639,11 @@ def calculate_score(user, path):
 
 #        calculate all confidences
         temp_confience = {}
+#        if len(grouped_confidence.keys())
         for key in grouped_confidence.keys():
             temp_score = 0
             for tupel in grouped_confidence[key]:
+                print(tupel)
                 temp_score = temp_score + tupel[1] * tupel [2]
             temp_confience[key] = temp_score
 
@@ -709,7 +735,7 @@ parser_user_value_sensitivity.add_argument('value_name', type=str, required=True
 parser_user_value_sensitivity.add_argument('sensitivity', type=score_float_validator, required=True, location='json', help="This is the sensitivity score for this particular value. It is either provided by the user or is computed from prior knowledge.")
 
 class userValueSensitivity(Resource):
-    
+
     def post(self):
         args = parser_user_value_sensitivity.parse_args()
         return_object = set_sensitivity(args)
@@ -720,7 +746,7 @@ class userValueSensitivity(Resource):
         else:
             handle_request_error(return_object[1], return_object[0])
         pass
-    
+
     def put(self):
         args = parser_user_value_sensitivity.parse_args()
         return_object = set_sensitivity(args)
@@ -741,7 +767,7 @@ parser_user_attribute_sensitivity.add_argument('path', type=path_validator, requ
 parser_user_attribute_sensitivity.add_argument('sensitivity', type=score_float_validator, required=True, location='json', help="This is the sensitivity score for this particular value. It is either provided by the user or is computed from prior knowledge.")
 
 class userAttributeSensitivity(Resource):
-    
+
     def post(self):
         args = parser_user_attribute_sensitivity.parse_args()
         return_object = set_sensitivity(args)
@@ -752,7 +778,7 @@ class userAttributeSensitivity(Resource):
         else:
             handle_request_error(return_object[1], return_object[0])
         pass
-    
+
     def put(self):
         args = parser_user_value_sensitivity.parse_args()
         return_object = set_sensitivity(args)
@@ -773,7 +799,7 @@ parser_user_dimension_sensitivity.add_argument('path', type=path_validator_dimen
 parser_user_dimension_sensitivity.add_argument('sensitivity', type=score_float_validator, required=True, location='json', help="This is the sensitivity score for this particular value. It is either provided by the user or is computed from prior knowledge.")
 
 class userDimensionSensitivity(Resource):
-    
+
     def post(self):
         args = parser_user_dimension_sensitivity.parse_args()
         return_object = set_sensitivity(args)
@@ -784,7 +810,7 @@ class userDimensionSensitivity(Resource):
         else:
             handle_request_error(return_object[1], return_object[0])
         pass
-    
+
     def put(self):
         args = parser_user_value_sensitivity.parse_args()
         return_object = set_sensitivity(args)
@@ -801,7 +827,7 @@ api.add_resource(userDimensionSensitivity, '/user/dimension/sensitivity', endpoi
 
 
 class Ping(Resource):
-    
+
     def get(self):
         return {"status": 200}
 
@@ -810,7 +836,7 @@ api.add_resource(Ping, '/ping', endpoint = 'ping')
 
 
 class ClearAll(Resource):
-    
+
     def get(self):
         users_collection.remove()
         return {"status": 200}
@@ -826,10 +852,10 @@ parser_user.add_argument('user_id',   type=str,   required=False, location='args
 
 
 class User(Resource):
-    
+
     def get(self):
         args = parser_user.parse_args()
-        
+
         return_object = None
         if (args['user_id'] == None) & (args['_id'] == None):
             handle_request_error(403, 'Can\'t find object without ?user_id=... or ?_id=...')
@@ -850,7 +876,7 @@ class User(Resource):
 
     def delete(self):
         args = parser_user.parse_args()
-        
+
         return_object = ()
         if (args['user_id'] == None) & (args['_id'] == None):
             handle_request_error(403, 'Can\'t find object without ?user_id=... or ?_id=...')
@@ -877,14 +903,14 @@ parser_user_value = reqparse.RequestParser()
 parser_user_value.add_argument('path',                  type=path_validator,            required=True,  location='json',    help="This value should be a dot separated string path to the location of the new value that is being added in the format user_id.dimension_name.attribute_name (Ex: 12346345.demographics.age)")
 parser_user_value.add_argument('value_name',            type=str,                       required=True,  location='json',    help="This is the name of the value that is represented by this record.")
 parser_user_value.add_argument('value_confidence',                 type=score_float_validator,     required=False,  location='json',    help="This is the aggregated confidence score for the specified value.")
-parser_user_value.add_argument('value_sensitivity',                type=score_float_validator,     required=True, location='json',    help="This is the sensitivity score for this particular value. It is either provided by the user or is computed from prior knowledge.")
+parser_user_value.add_argument('value_sensitivity',                type=score_float_validator,     required=False, location='json',    help="This is the sensitivity score for this particular value. It is either provided by the user or is computed from prior knowledge.")
 parser_user_value.add_argument('value_visibility_overall',         type=score_float_validator,     required=False,  location='json',    help="This is the overall visibility score for this particular value. It will depend on the user's privacy settings on the content that supports the value.")
 parser_user_value.add_argument('value_visibility_label',           type=str,                       required=False,  location='json',    help="This is qualitative visibility label that represents the widest group of audience to which information about this value is accessible.")
 parser_user_value.add_argument('value_visibility_actual_audience', type=int,                       required=False,  location='json',    help="This is an estimate of the actual audience that has access to information related to this value.")
 parser_user_value.add_argument('value_is_inferred',                type=bool,                      required=False,  location='json',    help="This is a binary field that defines if the value has been declared by the user or has been inferred.")
 parser_user_value.add_argument('value_level_of_control',           type=score_float_validator,     required=False,  location='json',    help="This represents the ability of the user to control the disclosure of information related to this value.")
 parser_user_value.add_argument('value_privacy_score',              type=score_float_validator,     required=False,  location='json',    help="This is the overall privacy score for that particular value, which is a function of the sensitivity, (aggregated) confidence and (aggregated) visibility scores")
-parser_user_value.add_argument('value_support',                    type=support_object_validator,  required=True,  location='json',    help="This is an array that includes support records. Support records can only appear as parts of this array.")
+parser_user_value.add_argument('value_support',                    type=support_object_validator,  required=False,  location='json',    help="This is an array that includes support records. Support records can only appear as parts of this array.")
 
 #parser_user_value.add_argument('value_sensitivity',     type=score_float_validator,     required=True,  location='json',    help="This is the sensitivity score for this particular value. It is either provided by the user or is computed from prior knowledge.")
 #parser_user_value.add_argument('value_support',         type=support_object_validator,  required=True,  location='json',    help="This is an array that includes support records. Support records can only appear as parts of this array.")
@@ -898,7 +924,7 @@ class UserValue(Resource):
     def get(self):
         args = parser_user_value_simple.parse_args()
         return_object = read_value(args)
-        
+
         if not return_object:
             handle_request_error(500, None)
         elif not return_object[1]:
@@ -906,11 +932,11 @@ class UserValue(Resource):
         else:
             handle_request_error(return_object[1], return_object[0])
         pass
-    
+
     def delete(self):
         args = parser_user_value_simple.parse_args()
         return_object = delete_value(args)
-        
+
         if not return_object:
             handle_request_error(500, None)
         elif not return_object[1]:
@@ -918,7 +944,7 @@ class UserValue(Resource):
         else:
             handle_request_error(return_object[1], return_object[0])
         pass
-    
+
     def post(self):
         args = parser_user_value.parse_args()
         return_object = create_value(args)
@@ -948,13 +974,13 @@ api.add_resource(UserValue, '/user/value', endpoint = 'value')
 
 
 class UserValueSupport(Resource):
-    
+
     def get(self):
         parser_get = parser_user_value_simple.copy()
         parser_get.add_argument('index', type=int, required=False, choices=range(0, sys.maxsize), location='args', help="The index of the support object in the value_support array. Integer.")
         args = parser_get.parse_args()
         return_object = read_value_support(args)
-        
+
         if not return_object:
             handle_request_error(500, None)
         elif not return_object[1]:
@@ -968,7 +994,7 @@ class UserValueSupport(Resource):
         parser_delete.add_argument('index', type=int, required=False, choices=range(0, sys.maxsize), location='args', help="The index of the support object in the value_support array. Integer.")
         args = parser_delete.parse_args()
         return_object = delete_value_support(args)
-        
+
         if not return_object:
             handle_request_error(500, None)
         elif not return_object[1]:
@@ -985,7 +1011,7 @@ class UserValueSupport(Resource):
 #        parser_post.add_argument('value_support', type=support_object_validator, required=True, location='json', help="This is an array that includes support records. Support records can only appear as parts of this array.")
         args = parser_post.parse_args()
         return_object = create_value_support(args)
-        
+
         if not return_object:
             handle_request_error(500, None)
         elif not return_object[1]:
@@ -1001,7 +1027,7 @@ class UserValueSupport(Resource):
         parser_put.add_argument('value_support', type=support_object_validator, required=True, location='json', help="This is an array that includes support records. Support records can only appear as parts of this array.")
         args = parser_put.parse_args()
         return_object = update_value_support(args)
-        
+
         if not return_object:
             handle_request_error(500, None)
         elif not return_object[1]:
@@ -1018,4 +1044,3 @@ api.add_resource(UserValueSupport, '/user/value/support', endpoint = 'support')
 if __name__ == "__main__":
 #    app.run()
     app.run(debug=True)
-
