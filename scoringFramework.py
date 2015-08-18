@@ -113,7 +113,7 @@ def dimension_object_for_path(path, dictionary):
     return {
         path[2]: {
             "dimension_privacy_score": None,
-            "dimension_visibility_overall": None,
+            "dimension_visibility_overall": 1,#must be set to None when visibility implemented
             "dimension_visibility_label": "",
             "dimension_visibility_actual_audience": None,
             "dimension_level_of_control": None,
@@ -126,7 +126,7 @@ def attribute_object_for_path(path, dictionary):
     return {
         path[4]: {
             "attribute_privacy_score": None,
-            "attribute_visibility_overall": None,
+            "attribute_visibility_overall": 1,#must be set to None when visibility implemented
             "attribute_visibility_label": None,
             "attribute_visibility_actual_audience": None,
             "attribute_level_of_control": None,
@@ -259,6 +259,9 @@ def delete_value(dictionary):
 def create_value(dictionary):
 
     path_list = get_path_from_data(dictionary)
+    
+    #to be deleted after implemenatation of visibility
+    dictionary['value_visibility_overall'] = 1
 
     object_id = None
 
@@ -309,6 +312,9 @@ def create_value(dictionary):
 def update_value(dictionary):
 
     path_list = get_path_from_data(dictionary)
+    
+    #to be deleted after implemenatation of visibility
+    dictionary['value_visibility_overall'] = 1
 
     object_id = None
     user = read(path_list[0], None)[0]
@@ -416,6 +422,10 @@ def delete_value_support(dictionary):
 def create_value_support(dictionary):
 
     path_list = get_path_from_data(dictionary)
+    
+    #to be deleted after implemenatation of visibility
+    dictionary['value_visibility_overall'] = 1
+
     path_list.append('value_support')
 
     object_id = None
@@ -487,6 +497,9 @@ def update_value_support(dictionary):
 
     path_list = get_path_from_data(dictionary)
     path_list.append('value_support')
+    
+    #to be deleted after implemenatation of visibility
+    dictionary['value_visibility_overall'] = 1
 
     object_id = None
     user = read(path_list[0], None)[0]
@@ -573,6 +586,8 @@ def set_sensitivity(dictionary):
             for value_key in attribute['attribute_values'].keys():
                 value = attribute['attribute_values'][value_key]
                 value['value_sensitivity'] = dictionary['sensitivity']
+    
+    calculate_score(user, path_list)
 
     object_id = users_collection.save(user)
 
@@ -606,7 +621,7 @@ def calculate_score(user, path):
                 value['value_is_inferred'] = True
 
 #---value_confidence calculation
-    if value['value_is_inferred'] == False:
+    if 'value_is_inferred' in value and value['value_is_inferred'] == False:
         value['value_confidence'] = 1.0
     else:
         all_values = attribute['attribute_values']
@@ -614,17 +629,18 @@ def calculate_score(user, path):
 
         for temp_value_key in all_values.keys():
             temp_value = all_values[temp_value_key]
-            for temp_support in temp_value['value_support']:
-                key = (temp_support['support_inference_mechanism'], temp_support['support_data_pointer_id'])
-                if temp_value['value_sensitivity'] == None:
-                    sensitivity = 0
-                else:
-                    sensitivity = temp_value['value_sensitivity']
-                val = (temp_value_key, sensitivity, temp_support['support_confidence'])
-                if key in grouped_confidence:
-                    grouped_confidence[key].append(val)
-                else:
-                    grouped_confidence[key] = [val]
+            if temp_value['value_support'] != None:
+                for temp_support in temp_value['value_support']:
+                    key = (temp_support['support_inference_mechanism'], temp_support['support_data_pointer_id'])
+                    if temp_value['value_sensitivity'] == None:
+                        sensitivity = 0
+                    else:
+                        sensitivity = temp_value['value_sensitivity']
+                    val = (temp_value_key, sensitivity, temp_support['support_confidence'])
+                    if key in grouped_confidence:
+                        grouped_confidence[key].append(val)
+                    else:
+                        grouped_confidence[key] = [val]
 
 #        keep only supports that are in all values
         keys_to_remove = []
@@ -639,33 +655,37 @@ def calculate_score(user, path):
 
 #        calculate all confidences
         temp_confience = {}
-#        if len(grouped_confidence.keys())
-        for key in grouped_confidence.keys():
-            temp_score = 0
-            for tupel in grouped_confidence[key]:
-                print(tupel)
-                temp_score = temp_score + tupel[1] * tupel [2]
-            temp_confience[key] = temp_score
+        if len(grouped_confidence.keys()) > 0:
+            for key in grouped_confidence.keys():
+                temp_score = 0
+                for tupel in grouped_confidence[key]:
+                    print(tupel)
+                    temp_score = temp_score + tupel[1] * tupel[2]
+                temp_confience[key] = temp_score
 
-#        print(temp_confience)
+#            print(temp_confience)
 
-#        get max confidence
-        confidence_key = None
-        for key in temp_confience.keys():
-            if confidence_key == None:
-                confidence_key = key
-            elif temp_confience[key] > temp_confience[confidence_key]:
-                confidence_key = key
+    #        get max confidence
+            confidence_key = None
+            for key in temp_confience.keys():
+                if confidence_key == None:
+                    confidence_key = key
+                elif temp_confience[key] > temp_confience[confidence_key]:
+                    confidence_key = key
 
-#        print(confidence_key)
+#            print(confidence_key)
 
-        confidences = grouped_confidence[confidence_key]
-#        print(confidences)
+            confidences = grouped_confidence[confidence_key]
+    #        print(confidences)
 
-        for temp_tuple in confidences:
-            all_values[temp_tuple[0]]['value_confidence'] = temp_tuple[2]
+            for temp_tuple in confidences:
+                all_values[temp_tuple[0]]['value_confidence'] = temp_tuple[2]
 
-        pass
+            pass
+    
+#---value_privacy_score calculation
+    if 'value_sensitivity' in value and 'value_visibility_overall' in value and 'value_confidence' in value and value['value_sensitivity'] != None and value['value_visibility_overall'] != None and value['value_confidence'] != None:
+        value['value_privacy_score'] = value['value_sensitivity'] * value['value_visibility_overall'] * value['value_confidence']
 
     get_from_dict(user, path_list[1:-1])[path_list[-1]] = value
 
