@@ -8,7 +8,6 @@ import json
 import datetime
 import os
 import sys
-import newrelic.agent
 
 try:
     from flask.ext.cors import CORS  # The typical way to import flask-cors
@@ -21,8 +20,6 @@ except ImportError:
     from flask.ext.cors import CORS
 
 
-newrelic.agent.initialize()
-
 
 #connection with mongodb database
 uriString = 'mongodb://heroku_app35712253:h1percje0a7qvfhd38aq2li39t@ds039311.mongolab.com:39311/heroku_app35712253?replicaSet=rs-ds039311'
@@ -33,6 +30,19 @@ db = client.heroku_app35712253
 users_collection = db.users
 #print(users_collection)
 #users_collection.remove()
+
+databaitUriString = 'mongodb://127.0.0.1:27017/databait'
+databaitClient = MongoClient(databaitUriString)
+databaitDB = databaitClient.databait
+databaitUserCollection = databaitDB.user
+databaitMessageCollection = databaitDB.message
+databaitUserLikesCollection = databaitDB.userLikes
+#print(databaitUserCollection)
+#print(list(databaitUserCollection.find()))
+#print(databaitMessageCollection)
+#print(list(databaitMessageCollection.find()))
+#print(databaitUserLikesCollection)
+#print(list(databaitUserLikesCollection.find()))
 
 
 
