@@ -317,7 +317,7 @@ public class UserDataAccessFromFile implements UserDataAccess {
             try{
                 InputStream imageconcepts = new BufferedInputStream(new FileInputStream(filename));
 
-                JAXBContext jcImages = JAXBContext.newInstance("com.hwcomms.usemp.visual.images");
+                JAXBContext jcImages = JAXBContext.newInstance("usemp.visual.images");
                 Unmarshaller umImages = jcImages.createUnmarshaller();
                 VisualDetection vd = (VisualDetection) umImages.unmarshal(imageconcepts);
 

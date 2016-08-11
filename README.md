@@ -63,5 +63,5 @@ Please note that after execution the data directory will have the following cont
 - photos: This directory contains the images of the user.
 - visualization : This directory contains the visualization of the user's scores. Please open the file USEMP.htm that can be found inside it.
 
-A sample directory with mock data can be found here TODO.
+A sample directory with mock data can be found here https://www.dropbox.com/s/7tqyxr56ss8shr3/myFacebookDataTest.zip?dl=0 .
 

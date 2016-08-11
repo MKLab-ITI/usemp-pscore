@@ -143,6 +143,7 @@ public class Attribute {
         for(Value value:values) value.setSensitivity(sensitivity);
     }
 
+	/*
     public void computeScores(){
         for(Value value:values)
             value.computeScores();
@@ -152,6 +153,25 @@ public class Attribute {
     //    aggregateLevelOfControl(values.values());
         aggregateVisibilityLabel(values);
         }
+*/
+    public void computeScores(){
+        Set<Value> toDelete=new HashSet<Value>();
+        for(Value value:values){
+            if(value.getSupports().size()>0)
+                value.computeScores();
+            else
+                toDelete.add(value);
+           
+        }
+        if(toDelete.size()>0)
+            System.out.println("Deleting values: "+toDelete.size());
+        values.removeAll(toDelete); 
+        aggregatePrivacyScores(values);
+        aggregateVisibilityOverall(values);
+        aggregateLevelOfControl(values);
+    //    aggregateLevelOfControl(values.values());
+        aggregateVisibilityLabel(values);
+    }
     
     private void aggregatePrivacyScores(Collection<Value> values){
         Double result=0.0;
