@@ -116,10 +116,10 @@ public class VisualConceptsClassifier {
                     description_du=description_du.substring(0,description_du.length()-1);
                     description_sw=description_sw.trim();
                     description_sw=description_sw.substring(0,description_sw.length()-1);
-                    System.out.println("DETAILS:");
-                    System.out.println(dimension);
-                    System.out.println(attribute);
-                    System.out.println(ent.getKey());
+                    //System.out.println("DETAILS:");
+                    //System.out.println(dimension);
+                    //System.out.println(attribute);
+                    //System.out.println(ent.getKey());
                     scoringUser.addSupport(dimension, attribute, ent.getKey(), pointersToData, conceptsConfidences.get(conc),
                             usemp.certh.scoring.Constants.InferenceMechanism.VISUAL_CONCEPTS_MAPPING,description_en, description_du, description_sw,user_data);
                 }
