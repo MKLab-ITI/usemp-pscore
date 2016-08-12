@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.HashSet;
 
 /**
  *
@@ -156,7 +156,7 @@ public class Attribute {
         }
 */
     public void computeScores(){
-        Set<Value> toDelete=new HashSet<Value>();
+        HashSet<Value> toDelete=new HashSet<Value>();
         for(Value value:values){
             if(value.getSupports().size()>0)
                 value.computeScores();
