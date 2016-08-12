@@ -162,10 +162,7 @@ public class Attribute {
                 value.computeScores();
             else
                 toDelete.add(value);
-           
         }
-        if(toDelete.size()>0)
-            System.out.println("Deleting values: "+toDelete.size());
         values.removeAll(toDelete); 
         aggregatePrivacyScores(values);
         aggregateVisibilityOverall(values);
