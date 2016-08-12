@@ -31,7 +31,6 @@ public class Main {
         String accessToken="EAACEdEose0cBAMxmMEPrGVFdze7DCjCriprD4pVEqrHHotd2iEOUUQz1X1wTIe21KBRrERu2AZCEDtIrru8dsuFDbDCA6vJutuEZCNT2veZCQtKSlWEdmRMut6RZBzZAR0ltxBZCIMZAo5QQFYMbqJZBS7eVsZB7oeOXX1090XZCTBdAZDZD";
         String targetDir="/myFacebookData/";
 
-        /*
         //We first fetch all the user's data from Facebook and store them in 
         //files in the directory specified in the variable targetDir
         FacebookPersonalDataFetcher.fetchData(accessToken, targetDir);
@@ -83,7 +82,6 @@ public class Main {
         user_data.saveScoringUser();
         System.out.println("Saved scoring user");
 
-         */
         //Finally, the files for a web based visualization of the 
         //disclosure scores are copied into the directory where the files
         //with the facebook data are stored.
