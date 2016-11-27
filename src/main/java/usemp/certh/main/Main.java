@@ -29,12 +29,13 @@ import usemp.certh.userDataAccess.UserDataAccessFromFile;
 public class Main {
  
     public static void main(String[] args){
-        String accessToken="EAACEdEose0cBAOYCwZCxVlMchqjVJ2dAoGwFTBmCAK6zKFHDZCt7cYBrak5jYLQTdLxZC4qkpjPJIbZCngN8ZAdKfvWGjMgx2RlNAIQVrPBkJZAI7J7KhsBADvR27xaGZAKLShv8RUxpyDPTkddQr9CRZCcyOuYxrZAMecq1BsSS83QZDZD";
+        //Put your Facebook access token in the following variable 
+        String accessToken="YOUR ACCESS TOKEN GOES HERE";
         String targetDir="/myFacebookDataNew/";
 
         //We first fetch all the user's data from Facebook and store them in 
         //files in the directory specified in the variable targetDir
-        //FacebookPersonalDataFetcher.fetchData(accessToken, targetDir);
+        FacebookPersonalDataFetcher.fetchData(accessToken, targetDir);
         System.out.println("Fetched data from Facebook and saved to files!");
                 
         //This is the object that allows access to the user's data.
