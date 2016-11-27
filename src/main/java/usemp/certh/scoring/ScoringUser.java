@@ -1,6 +1,5 @@
 package usemp.certh.scoring;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,6 +14,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.ArrayList;
 import usemp.certh.userDataAccess.UserDataAccess;
+import com.restfb.types.Page;
+import com.restfb.types.Photo;
+import com.restfb.types.Post;
+import com.restfb.types.StatusMessage;
+import java.util.Map.Entry;
+import usemp.certh.inference.preprepilot.Classification;
+import usemp.certh.inference.preprepilot.PrePilotClassifier;
 
 /**
  *
@@ -47,6 +53,25 @@ public class ScoringUser {
     public ScoringUser(){
         dimensions=new ArrayList<Dimension>();
     }
+    
+
+    public ScoringUser(ScoringUser scoringUser){
+        user_id=scoringUser.user_id;
+        user_level_of_control=scoringUser.user_level_of_control;
+        user_privacy_score=scoringUser.user_privacy_score;
+        user_visibility_overall=scoringUser.user_visibility_overall;
+        user_visibility_label=scoringUser.user_visibility_label;
+        user_visibility_actual_audience=scoringUser.user_visibility_actual_audience;
+        overall_personal_data_value=scoringUser.overall_personal_data_value;
+        user_influence=scoringUser.user_influence;
+        personal_data_value_per_item=new HashMap<Item,Double>();
+        dimensions=new ArrayList<Dimension>();
+        for(Dimension dimension:scoringUser.getDimensions()){
+            Dimension newDimension=new Dimension(dimension);
+            dimensions.add(newDimension);
+        }
+    }
+    
     
     public Dimension addDimension(String dimension_name, Double sensitivity){
         Dimension dimension=null;
@@ -369,6 +394,389 @@ public class ScoringUser {
         return result;
     }
     
-    public static NumberFormat formatter = new DecimalFormat("#00.0");   
+    public static NumberFormat formatter = new DecimalFormat("#0.00");   
+
+    
+    
+    public ControlSuggestionSet computeControlSuggestionSet(UserDataAccess userData){
+        ControlSuggestionSet css=new ControlSuggestionSet(user_id);
+        HashSet<Page> userlikes=userData.getAllLikes();
+
+//        UserLikes userLikesObj=fbData.getMongoOperation().findById(user_id, UserLikes.class);
+//        List<Category> userlikes = null;
+//        if(userLikesObj!=null)
+//            userlikes =userLikesObj.getLikes();
+        
+        for(Dimension dimension:dimensions){
+            for(Attribute attribute:dimension.getAttributes()){
+                for(Value value:attribute.getValues()){
+                    for(Support support:value.getSupports()){
+                        if(support.getSupport_inference_mechanism()==Constants.InferenceMechanism.LIKES_MAPPING){
+                            for(String id:support.getSupport_data_pointer_ids()){
+                                String id_s=id;
+                                id_s=id_s.replace("LIKE","");
+                                id_s=id_s.trim();
+                                Double confidence=support.getSupport_confidence();
+                                if(confidence==null) confidence=1.0;
+                                Double sensitivity=value.getValue_sensitivity();
+                                if(sensitivity==null) sensitivity=1.0;
+                                Double visibility=support.getSupport_visibility();
+                                if(visibility==null) visibility=1.0;
+                                Double score=sensitivity*visibility*confidence;
+                                String likeName=null;
+                                if(userlikes!=null){
+                                    for(Page category:userlikes)
+                                        if(category.getId().equals(id_s)){
+                                            likeName=category.getName();
+                                            break;
+                                        }
+                                }
+                                /*
+                                if(likeName==null){
+                                    Like like = fbData.getLikeDescription(id_s);
+                                    likeName=like.getName();
+                                }
+                                */
+//                                String description_en="This like (<a href=\"https://www.facebook.com/"+id_s+"/\">"+like.getName()+"</a>) is associated to "+dimension.getDimension_name()+" &rarr; "+attribute.getAttribute_name()+" (disclosure score: "+formatter.format(score*100)+"%)..";
+//                                String description_du="Deze vind-ik-leuk (<a href=\"https://www.facebook.com/"+id_s+"/\">"+like.getName()+"</a>) wordt geassocieerd met "+Translator.translateDu(dimension.getDimension_name()) +" &rarr; "+Translator.translateDu(attribute.getAttribute_name())+" (onthullingsscore: "+formatter.format(score*100)+"%)";
+//                                String description_sw="Denna gilla-markering (<a href=\"https://www.facebook.com/"+id_s+"/\">"+like.getName()+"</a>) hör ihop med "+Translator.translateSw(dimension.getDimension_name())+" &rarr; "+Translator.translateSw(attribute.getAttribute_name())+" (avslöjandegrad: "+formatter.format(score*100)+"%)";
+                                String description_en="The like (<a href=\"https://www.facebook.com/"+id_s+"/\">"+likeName+"</a>) is associated to "+dimension.getDimension_name()+" &rarr; "+attribute.getAttribute_name()+" (disclosure score: "+formatter.format(score*100)+"%)..";
+                                String description_du="The like (<a href=\"https://www.facebook.com/"+id_s+"/\">"+likeName+"</a>) is associated to "+dimension.getDimension_name()+" &rarr; "+attribute.getAttribute_name()+" (disclosure score: "+formatter.format(score*100)+"%)..";
+                                String description_sw="The like (<a href=\"https://www.facebook.com/"+id_s+"/\">"+likeName+"</a>) is associated to "+dimension.getDimension_name()+" &rarr; "+attribute.getAttribute_name()+" (disclosure score: "+formatter.format(score*100)+"%)..";
+//                                String description_du="Deze vind-ik-leuk (<a href=\"https://www.facebook.com/"+id_s+"/\">"+likeName+"</a>) wordt geassocieerd met "+Translator.translateDu(dimension.getDimension_name()) +" &rarr; "+Translator.translateDu(attribute.getAttribute_name())+" (onthullingsscore: "+formatter.format(score*100)+"%)";
+//                                String description_sw="Denna gilla-markering (<a href=\"https://www.facebook.com/"+id_s+"/\">"+likeName+"</a>) hör ihop med "+Translator.translateSw(dimension.getDimension_name())+" &rarr; "+Translator.translateSw(attribute.getAttribute_name())+" (avslöjandegrad: "+formatter.format(score*100)+"%)";
+                                ControlSuggestion new_cs=new ControlSuggestion(id_s,dimension.getDimension_name(),attribute.getAttribute_name(),value.getValue_name(),confidence,score,description_en,description_du,description_sw);
+                                css.addControlSuggestionLike(new_cs);
+                            }
+                        }
+                        if(support.getSupport_inference_mechanism()==Constants.InferenceMechanism.URLS_MAPPING){
+                            for(String id:support.getSupport_data_pointer_ids()){
+                                String id_s=id;
+                                id_s=id_s.replace("POST","");
+                                id_s=id_s.trim();
+                                Double confidence=support.getSupport_confidence();
+                                if(confidence==null) confidence=1.0;
+                                Double sensitivity=value.getValue_sensitivity();
+                                if(sensitivity==null) sensitivity=1.0;
+                                Double visibility=support.getSupport_visibility();
+                                if(visibility==null) visibility=1.0;
+                                Double score=sensitivity*visibility*confidence;
+                                String description_en="The URL included in <a href=\""+userData.getPost(id_s).getLink()+"\">this post</a> is associated to "+dimension.getDimension_name()+" &rarr; "+attribute.getAttribute_name()+" (disclosure score: "+formatter.format(score*100)+"%)";
+                                String description_du="The URL included in <a href=\""+userData.getPost(id_s).getLink()+"\">this post</a> is associated to "+dimension.getDimension_name()+" &rarr; "+attribute.getAttribute_name()+" (disclosure score: "+formatter.format(score*100)+"%)";
+                                String description_sw="The URL included in <a href=\""+userData.getPost(id_s).getLink()+"\">this post</a> is associated to "+dimension.getDimension_name()+" &rarr; "+attribute.getAttribute_name()+" (disclosure score: "+formatter.format(score*100)+"%)";
+//                                String description_du="The URL included in <a href=\""+userData.getPost(id_s).getLink()+"\">this post</a> is associated to "+dimension.getDimension_name()+" &rarr; "+attribute.getAttribute_name()+" (disclosure score: "+formatter.format(score*100)+"%)";
+//                                String description_sw="The URL included in <a href=\""+userData.getPost(id_s).getLink()+"\">this post</a> is associated to "+dimension.getDimension_name()+" &rarr; "+attribute.getAttribute_name()+" (disclosure score: "+formatter.format(score*100)+"%)";
+                                
+//                                String description_du="De URL in deze post wordt geassocieerd met "+Translator.translateDu(dimension.getDimension_name()) +" &rarr; "+Translator.translateDu(attribute.getAttribute_name())+" (onthullingsscore: "+formatter.format(score*100)+"%)";
+//                                String description_sw="Web-adressen i det här inlägget hör ihop med "+Translator.translateSw(dimension.getDimension_name())+" &rarr; "+Translator.translateSw(attribute.getAttribute_name())+" (avslöjandegrad: "+formatter.format(score*100)+"%)";
+                                ControlSuggestion new_cs=new ControlSuggestion(id_s,dimension.getDimension_name(),attribute.getAttribute_name(),value.getValue_name(),confidence,score,description_en,description_du,description_sw);
+                                css.addControlSuggestionPost(new_cs);
+                            }
+                        }
+                        if(support.getSupport_inference_mechanism()==Constants.InferenceMechanism.VISUAL_CONCEPTS_MAPPING){
+                            for(String id:support.getSupport_data_pointer_ids()){
+                                String id_s=id;
+                                id_s=id_s.replace("IMAGE","");
+                                id_s=id_s.trim();
+                                Double confidence=support.getSupport_confidence();
+                                if(confidence==null) confidence=1.0;
+                                Double sensitivity=value.getValue_sensitivity();
+                                if(sensitivity==null) sensitivity=1.0;
+                                Double visibility=support.getSupport_visibility();
+                                if(visibility==null) visibility=1.0;
+                                Double score=sensitivity*visibility*confidence;
+                                String description_en="The content of this image is associated to "+dimension.getDimension_name()+" &rarr; "+attribute.getAttribute_name()+" (disclosure score: "+formatter.format(score*100)+"%)";
+                                String description_du="The content of this image is associated to "+dimension.getDimension_name()+" &rarr; "+attribute.getAttribute_name()+" (disclosure score: "+formatter.format(score*100)+"%)";
+                                String description_sw="The content of this image is associated to "+dimension.getDimension_name()+" &rarr; "+attribute.getAttribute_name()+" (disclosure score: "+formatter.format(score*100)+"%)";
+//                                String description_du="Deze image wordt geassocieerd met "+Translator.translateDu(dimension.getDimension_name()) +" &rarr; "+Translator.translateDu(attribute.getAttribute_name())+" (onthullingsscore: "+formatter.format(score*100)+"%)";
+//                                String description_sw="Här inlägget hör ihop med "+Translator.translateSw(dimension.getDimension_name())+" &rarr; "+Translator.translateSw(attribute.getAttribute_name())+" (avslöjandegrad: "+formatter.format(score*100)+"%)";
+                                ControlSuggestion new_cs=new ControlSuggestion(id_s,dimension.getDimension_name(),attribute.getAttribute_name(),value.getValue_name(),confidence,score,description_en,description_du,description_sw);
+                                String url=null;
+                                //get urls from mongo
+                                //Photo photo=fbData.getMongoOperation().findById(id_s, Photo.class);
+                                //if(photo!=null) url=photo.getPicture();
+                                //new_cs.setPointer(url);
+                                new_cs.setPointer(id_s);
+                                
+                                css.addControlSuggestionImage(new_cs);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        css.orderAll();
+        return css;
+    }
+
+    public ControlSuggestionSetExtended computeControlSuggestionSetExtended(UserDataAccess userData, PrePilotClassifier ppc){
+        ControlSuggestionSetExtended css=new ControlSuggestionSetExtended(user_id);
+        HashSet<Page> userlikes=userData.getAllLikes();
+
+        ScoringUser scoringUser=userData.getScoringUser();
+        Classification ucd = ppc.loadClassificationData(userData);
+        
+        HashMap<String,Double> initialScores=new HashMap<String,Double>();
+        initialScores.put("Overall",scoringUser.getUser_privacy_score());
+        for(Dimension dimension:scoringUser.getDimensions()){
+            initialScores.put(dimension.getDimension_name(),dimension.getDimension_privacy_score());
+        }
+        
+        //Then loop through the posts and examine how the score changes
+        for(Post post:userData.getAllPosts()){
+            //First copy the actual scores:
+            ScoringUser scoringUserTmp=new ScoringUser(scoringUser);
+            userData.setScoringUser(scoringUserTmp);
+            //First remove the message from the classification data
+            if(post.getMessage()!=null){
+                ucd.removePost(post);
+                //And remove any supports that contain it
+                ArrayList<String> dataToDelete=new ArrayList<String>();
+                dataToDelete.add("POST "+post.getId());
+                scoringUserTmp.deleteData(dataToDelete);
+
+                //Then re-run the classifiers
+                //First the prepilot classifier
+                ppc.classifyAll(ucd, userData);
+
+                //Finally, add the message again to the classification data, so that it is used in the following prepilot classifications
+                ucd.addPost(post);
+
+                String _id=post.getId();
+                for(Dimension dimension:scoringUserTmp.getDimensions()){
+                    String _dimension=dimension.getDimension_name();
+                    String _attribute="";
+                    String _value="";
+                    Double _confidence=0.0;
+                    Double newScore=dimension.getDimension_privacy_score();
+                    Double initialScore=initialScores.get(dimension.getDimension_name());
+                    Double _score=initialScore-newScore;
+                    String description_en="The URL included in <a href=\""+userData.getPost(_id).getActions().get(0).getLink()+"\">this post</a> contributes "+formatter.format(_score*100)+" out of the " +formatter.format(initialScore*100)+"% disclosure score of the dimension "+_dimension+"'";
+                    String description_du="The URL included in <a href=\""+userData.getPost(_id).getActions().get(0).getLink()+"\">this post</a> contributes "+formatter.format(_score*100)+" out of the " +formatter.format(initialScore*100)+"% disclosure score of the dimension "+_dimension+"'";
+                    String description_sw="The URL included in <a href=\""+userData.getPost(_id).getActions().get(0).getLink()+"\">this post</a> contributes "+formatter.format(_score*100)+" out of the " +formatter.format(initialScore*100)+"% disclosure score of the dimension "+_dimension+"'";
+                    //String description_du="This post contributes "+formatter.format(_score*100)+" out of the " +formatter.format(initialScore*100)+"% disclosure score of the dimension "+_dimension+"'";
+                    //String description_sw="This post contributes "+formatter.format(_score*100)+" out of the " +formatter.format(initialScore*100)+"% disclosure score of the dimension "+_dimension+"'";
+                    if(_score>0){
+                        ControlSuggestion new_cs=new ControlSuggestion(_id, _dimension, _attribute, _value, _confidence, _score, description_en, description_du, description_sw);
+                        css.addControlSuggestionPost(new_cs);
+                    }                    
+                }
+                String _dimension="Overall";
+                String _attribute="";
+                String _value="";
+                Double _confidence=0.0;
+                Double newScore=scoringUserTmp.getUser_privacy_score();
+                Double initialScore=initialScores.get("Overall");
+                Double _score=initialScore-newScore;
+                String description_en="The URL included in <a href=\""+userData.getPost(_id).getActions().get(0).getLink()+"\">this post</a> contributes "+formatter.format(_score*100)+" of the " +formatter.format(initialScore*100)+"% disclosure score";
+                String description_du="The URL included in <a href=\""+userData.getPost(_id).getActions().get(0).getLink()+"\">this post</a> contributes "+formatter.format(_score*100)+" of the " +formatter.format(initialScore*100)+"% disclosure score";
+                String description_sw="The URL included in <a href=\""+userData.getPost(_id).getActions().get(0).getLink()+"\">this post</a> contributes "+formatter.format(_score*100)+" of the " +formatter.format(initialScore*100)+"% disclosure score";
+//                String description_en="This post contributes "+formatter.format(_score*100)+" out of the overall " +formatter.format(initialScore*100)+"% disclosure score";
+//                String description_du="This post contributes "+formatter.format(_score*100)+" out of the overall " +formatter.format(initialScore*100)+"% disclosure score";
+//                String description_sw="This post contributes "+formatter.format(_score*100)+" out of the overall " +formatter.format(initialScore*100)+"% disclosure score";
+                if(_score>0){
+                    ControlSuggestion new_cs=new ControlSuggestion(_id, _dimension, _attribute, _value, _confidence, _score, description_en, description_du, description_sw);
+                    css.addControlSuggestionPost(new_cs);
+                }
+            }
+            userData.setScoringUser(scoringUser);
+        }
+
+        //Then loop through the statuses and examine how the score changes
+        for(StatusMessage status:userData.getAllStatuses()){
+            //First copy the actual scores:
+            ScoringUser scoringUserTmp=new ScoringUser(scoringUser);
+            userData.setScoringUser(scoringUserTmp);
+
+            //First remove the message from the classification data
+            if(status.getMessage()!=null){
+                ucd.removeStatus(status);
+                //And remove any supports that contain it
+                ArrayList<String> dataToDelete=new ArrayList<String>();
+                dataToDelete.add("POST "+status.getId());
+                scoringUserTmp.deleteData(dataToDelete);
+
+                //Then re-run the classifiers
+                //First the prepilot classifier
+                ppc.classifyAll(ucd, userData);
+
+                //Finally, add the message again to the classification data, so that it is used in the following prepilot classifications
+                ucd.addStatus(status);
+
+                String _id=status.getId();
+                for(Dimension dimension:scoringUserTmp.getDimensions()){
+                    String _dimension=dimension.getDimension_name();
+                    String _attribute="";
+                    String _value="";
+                    Double _confidence=0.0;
+                    Double newScore=dimension.getDimension_privacy_score();
+                    Double initialScore=initialScores.get(dimension.getDimension_name());
+                    Double _score=initialScore-newScore;
+                    String description_en="The URL included in <a href=\"https://www.facebook.com/"+userData.getStatus(_id).getFrom().getId()+"/posts/"+_id+"\">this post</a> contributes "+formatter.format(_score*100)+" out of the " +formatter.format(initialScore*100)+"% disclosure score of the dimension "+_dimension+"'";
+                    String description_du="The URL included in <a href=\"https://www.facebook.com/"+userData.getStatus(_id).getFrom().getId()+"/posts/"+_id+"\">this post</a> contributes "+formatter.format(_score*100)+" out of the " +formatter.format(initialScore*100)+"% disclosure score of the dimension "+_dimension+"'";
+                    String description_sw="The URL included in <a href=\"https://www.facebook.com/"+userData.getStatus(_id).getFrom().getId()+"/posts/"+_id+"\">this post</a> contributes "+formatter.format(_score*100)+" out of the " +formatter.format(initialScore*100)+"% disclosure score of the dimension "+_dimension+"'";
+//                    String description_en="The post contributes "+formatter.format(_score*100)+" out of the " +formatter.format(initialScore*100)+"% disclosure score of the dimension '"+_dimension+"'";
+//                    String description_du="The post contributes "+formatter.format(_score*100)+" out of the " +formatter.format(initialScore*100)+"% disclosure score of the dimension '"+_dimension+"'";
+//                    String description_sw="The post contributes "+formatter.format(_score*100)+" out of the " +formatter.format(initialScore*100)+"% disclosure score of the dimension '"+_dimension+"'";
+                    if(_score>0){
+                        ControlSuggestion new_cs=new ControlSuggestion(_id, _dimension, _attribute, _value, _confidence, _score, description_en, description_du, description_sw);
+                        css.addControlSuggestionPost(new_cs);
+                    }                    
+                }
+                String _dimension="Overall";
+                String _attribute="";
+                String _value="";
+                Double _confidence=0.0;
+                Double newScore=scoringUserTmp.getUser_privacy_score();
+                Double initialScore=initialScores.get("Overall");
+                Double _score=initialScore-newScore;
+                String description_en="The URL included in <a href=\"https://www.facebook.com/"+userData.getStatus(_id).getFrom().getId()+"/posts/"+_id+"\">this post</a> contributes "+formatter.format(_score*100)+" out of the overall " +formatter.format(initialScore*100)+"% disclosure score";
+                String description_du="The URL included in <a href=\"https://www.facebook.com/"+userData.getStatus(_id).getFrom().getId()+"/posts/"+_id+"\">this post</a> contributes "+formatter.format(_score*100)+" out of the overall " +formatter.format(initialScore*100)+"% disclosure score";
+                String description_sw="The URL included in <a href=\"https://www.facebook.com/"+userData.getStatus(_id).getFrom().getId()+"/posts/"+_id+"\">this post</a> contributes "+formatter.format(_score*100)+" out of the overall " +formatter.format(initialScore*100)+"% disclosure score";
+//                String description_en="This post contributes "+formatter.format(_score*100)+" out of the overall " +formatter.format(initialScore*100)+"% disclosure score";
+//                String description_du="This post contributes "+formatter.format(_score*100)+" out of the overall " +formatter.format(initialScore*100)+"% disclosure score";
+//                String description_sw="This post contributes "+formatter.format(_score*100)+" out of the overall " +formatter.format(initialScore*100)+"% disclosure score";
+                if(_score>0){
+                    ControlSuggestion new_cs=new ControlSuggestion(_id, _dimension, _attribute, _value, _confidence, _score, description_en, description_du, description_sw);
+                    css.addControlSuggestionPost(new_cs);
+                }
+            }
+            userData.setScoringUser(scoringUser);
+        }
+
+        //Then loop through the likes and examine how the score changes
+        for(Page page:userData.getAllLikes()){
+            //First copy the actual scores:
+            ScoringUser scoringUserTmp=new ScoringUser(scoringUser);
+            userData.setScoringUser(scoringUserTmp);
+
+            //First remove the message from the classification data
+            if(page!=null){
+                ucd.removeLike(page);
+                //And remove any supports that contain it
+                ArrayList<String> dataToDelete=new ArrayList<String>();
+                dataToDelete.add("LIKE "+page.getId());
+                scoringUserTmp.deleteData(dataToDelete);
+
+                //Then re-run the classifiers
+                //First the prepilot classifier
+                ppc.classifyAll(ucd, userData);
+
+                //Finally, add the message again to the classification data, so that it is used in the following prepilot classifications
+                ucd.addLike(page);
+
+                String _id=page.getId();
+                for(Dimension dimension:scoringUserTmp.getDimensions()){
+                    String _dimension=dimension.getDimension_name();
+                    String _attribute="";
+                    String _value="";
+                    Double _confidence=0.0;
+                    Double newScore=dimension.getDimension_privacy_score();
+                    Double initialScore=initialScores.get(dimension.getDimension_name());
+                    Double _score=initialScore-newScore;
+                    String likeName=page.getName();
+                    String description_en="The like (<a href=\"https://www.facebook.com/"+_id+"/\">"+likeName+"</a>) contributes "+formatter.format(_score*100)+" out of the " +formatter.format(initialScore*100)+"% disclosure score of the dimension '"+_dimension+"'";
+                    String description_du="The like (<a href=\"https://www.facebook.com/"+_id+"/\">"+likeName+"</a>) contributes "+formatter.format(_score*100)+" out of the " +formatter.format(initialScore*100)+"% disclosure score of the dimension '"+_dimension+"'";
+                    String description_sw="The like (<a href=\"https://www.facebook.com/"+_id+"/\">"+likeName+"</a>) contributes "+formatter.format(_score*100)+" out of the " +formatter.format(initialScore*100)+"% disclosure score of the dimension '"+_dimension+"'";
+//                    String description_en="This like contributes "+formatter.format(_score*100)+" out of the " +formatter.format(initialScore*100)+"% disclosure score of the dimension '"+_dimension+"'";
+//                    String description_du="This like contributes "+formatter.format(_score*100)+" out of the " +formatter.format(initialScore*100)+"% disclosure score of the dimension '"+_dimension+"'";
+//                    String description_sw="This like contributes "+formatter.format(_score*100)+" out of the " +formatter.format(initialScore*100)+"% disclosure score of the dimension '"+_dimension+"'";
+                    if(_score>0){
+                        ControlSuggestion new_cs=new ControlSuggestion(_id, _dimension, _attribute, _value, _confidence, _score, description_en, description_du, description_sw);
+                        css.addControlSuggestionLike(new_cs);
+                    }                    
+                }
+                String _dimension="Overall";
+                String _attribute="";
+                String _value="";
+                Double _confidence=0.0;
+                Double newScore=scoringUserTmp.getUser_privacy_score();
+                Double initialScore=initialScores.get("Overall");
+                Double _score=initialScore-newScore;
+                String likeName=page.getName();
+                String description_en="The like (<a href=\"https://www.facebook.com/"+_id+"/\">"+likeName+"</a>) contributes "+formatter.format(_score*100)+" out of the overall " +formatter.format(initialScore*100)+"% disclosure score";
+                String description_du="The like (<a href=\"https://www.facebook.com/"+_id+"/\">"+likeName+"</a>) contributes "+formatter.format(_score*100)+" out of the overall " +formatter.format(initialScore*100)+"% disclosure score";
+                String description_sw="The like (<a href=\"https://www.facebook.com/"+_id+"/\">"+likeName+"</a>) contributes "+formatter.format(_score*100)+" out of the overall " +formatter.format(initialScore*100)+"% disclosure score";
+//                String description_en="This like contributes "+formatter.format(_score*100)+" out of the overall " +formatter.format(initialScore*100)+"% disclosure score";
+//                String description_du="This like contributes "+formatter.format(_score*100)+" out of the overall " +formatter.format(initialScore*100)+"% disclosure score";
+//                String description_sw="This like contributes "+formatter.format(_score*100)+" out of the overall " +formatter.format(initialScore*100)+"% disclosure score";
+                if(_score>0){
+                    ControlSuggestion new_cs=new ControlSuggestion(_id, _dimension, _attribute, _value, _confidence, _score, description_en, description_du, description_sw);
+                    css.addControlSuggestionLike(new_cs);
+                }
+            }
+            userData.setScoringUser(scoringUser);
+        }
+
+        //Finally, loop through the images and examine how the score changes
+        for(Photo photo:userData.getAllPhotos()){
+            //First copy the actual scores:
+            ScoringUser scoringUserTmp=new ScoringUser(scoringUser);
+            userData.setScoringUser(scoringUserTmp);
+
+            //First remove the image from the classification data
+            if(photo!=null){
+                HashMap<String,Double> photoConcepts=userData.getPhotoConcepts(photo.getId());
+                if(photoConcepts!=null){
+                    for(Entry<String,Double> ent:photoConcepts.entrySet()){
+                        ucd.removeConcept(ent.getKey(), ent.getValue());
+                    }
+                    //And remove any supports that contain it
+                    ArrayList<String> dataToDelete=new ArrayList<String>();
+                    dataToDelete.add("IMAGE "+photo.getId());
+                    scoringUserTmp.deleteData(dataToDelete);
+
+                    //Then re-run the classifiers
+                    //First the prepilot classifier
+                    ppc.classifyAll(ucd, userData);
+
+                    //Finally, add the message again to the classification data, so that it is used in the following prepilot classifications
+                    //ucd.addLike(page);
+                    for(Entry<String,Double> ent:photoConcepts.entrySet()){
+                        ucd.addConcept(ent.getKey(), ent.getValue());
+                    }
+
+//                    String _id=photo.getId();
+                    String _id=userData.getImageFilemane(photo.getId());
+                    for(Dimension dimension:scoringUserTmp.getDimensions()){
+                        String _dimension=dimension.getDimension_name();
+                        String _attribute="";
+                        String _value="";
+                        Double _confidence=0.0;
+                        Double newScore=dimension.getDimension_privacy_score();
+                        Double initialScore=initialScores.get(dimension.getDimension_name());
+                        Double _score=initialScore-newScore;
+                        String description_en="This image contributes "+formatter.format(_score*100)+" out of the " +formatter.format(initialScore*100)+"% disclosure score of the dimension '"+_dimension+"'";
+                        String description_du="This image contributes "+formatter.format(_score*100)+" out of the " +formatter.format(initialScore*100)+"% disclosure score of the dimension '"+_dimension+"'";
+                        String description_sw="This image contributes "+formatter.format(_score*100)+" out of the " +formatter.format(initialScore*100)+"% disclosure score of the dimension '"+_dimension+"'";
+                        if(_score>0){
+                            ControlSuggestion new_cs=new ControlSuggestion(_id, _dimension, _attribute, _value, _confidence, _score, description_en, description_du, description_sw);
+                            css.addControlSuggestionImage(new_cs);
+                        }                    
+                    }
+                    String _dimension="Overall";
+                    String _attribute="";
+                    String _value="";
+                    Double _confidence=0.0;
+                    Double newScore=scoringUserTmp.getUser_privacy_score();
+                    Double initialScore=initialScores.get("Overall");
+                    Double _score=initialScore-newScore;
+                    String description_en="This image contributes "+formatter.format(_score*100)+" out of the overall " +formatter.format(initialScore*100)+"% disclosure score";
+                    String description_du="This image contributes "+formatter.format(_score*100)+" out of the overall " +formatter.format(initialScore*100)+"% disclosure score";
+                    String description_sw="This image contributes "+formatter.format(_score*100)+" out of the overall " +formatter.format(initialScore*100)+"% disclosure score";
+                    if(_score>0){
+                        ControlSuggestion new_cs=new ControlSuggestion(_id, _dimension, _attribute, _value, _confidence, _score, description_en, description_du, description_sw);
+                        css.addControlSuggestionImage(new_cs);
+                    }
+                }
+            }
+            userData.setScoringUser(scoringUser);
+        }
+        
+        
+        css.orderAll();
+        return css;
+    }
+    
     
 }

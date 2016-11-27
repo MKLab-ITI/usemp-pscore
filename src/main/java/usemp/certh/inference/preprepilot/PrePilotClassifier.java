@@ -1,12 +1,8 @@
 package usemp.certh.inference.preprepilot;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.math.RoundingMode;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,20 +10,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
-
-
-import usemp.visual.images.Concept;
-import usemp.visual.images.VisualDetection;
 
 import cc.mallet.pipe.SerialPipes;
 import cc.mallet.topics.ParallelTopicModel;
 import cc.mallet.topics.TopicInferencer;
 import cc.mallet.types.InstanceList;
 import com.restfb.types.Page;
-import com.restfb.types.Photo.Image;
 import com.restfb.types.Post;
+import com.restfb.types.StatusMessage;
 import com.restfb.types.User;
 import java.io.BufferedReader;
 import java.io.FilenameFilter;
@@ -37,10 +27,8 @@ import java.io.ObjectInputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashSet;
-import java.util.Locale.Category;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import usemp.certh.inference.preprepilot.Classification;
 import usemp.certh.scoring.Constants;
 import usemp.certh.scoring.ScoringUser;
 import usemp.certh.userDataAccess.UserDataAccess;
@@ -782,14 +770,12 @@ public class PrePilotClassifier {
         Classification classificationData = new Classification(user.getId());
 
         HashSet<Post> posts=user_data.getAllPosts();
-
         int msgCounter = 0;
         for (Post post:posts) {
-            String message = post.getMessage();
-            if (message != null) {
+            if (post != null) {
 //                logger.debug("#" + msgCounter + ": " + message);
                 // if (!message.isEmpty()) {
-                classificationData.addMessage(post.getMessage());
+                classificationData.addPost(post);
                 // }
             } 
             //else {
@@ -798,6 +784,22 @@ public class PrePilotClassifier {
             msgCounter++;
         }
 
+        HashSet<StatusMessage> statuses=user_data.getAllStatuses();
+        //int msgCounter = 0;
+        for (StatusMessage status:statuses) {
+            if (status != null) {
+//                logger.debug("#" + msgCounter + ": " + message);
+                // if (!message.isEmpty()) {
+                classificationData.addStatus(status);
+                // }
+            } 
+            //else {
+                //System.out.println("#" + msgCounter + ": NULL");
+            //}
+            msgCounter++;
+        }
+        
+        
 //        List<Category> userlikes = mongoOperation.findById(userID, UserLikes.class).getLikes();
         HashSet<Page> userLikes=user_data.getAllLikes();
 

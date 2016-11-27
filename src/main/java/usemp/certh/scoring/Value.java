@@ -33,6 +33,22 @@ public class Value {
         supports=new ArrayList<Support>();
     }
     
+    public Value(Value value) {
+        value_name=value.value_name;
+        value_confidence=value.value_confidence;
+        value_visibility_label=value.value_visibility_label;
+        value_sensitivity=value.value_sensitivity;
+        value_visibility_actual_audience=value.value_visibility_actual_audience;
+        value_level_of_control=value.value_level_of_control;
+        value_visibility_overall=value.value_visibility_overall;
+        value_privacy_score=value.value_privacy_score;
+        value_is_inferred=value.value_is_inferred;
+        supports=new ArrayList<Support>();
+        for(Support support:value.supports){
+            Support newSupport=new Support(support);
+            supports.add(newSupport);
+        }
+    }
     
     public void addSupport(Constants.InferenceMechanism support_inference_mechanism, List<String> support_data_pointer_ids, Double support_confidence, String user_id, String description_en,String description_du,String description_sw,UserDataAccess user_data){
         //First check if a support with the same inference mechanism and for the same attribute / value exists.

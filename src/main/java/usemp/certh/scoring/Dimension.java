@@ -34,6 +34,20 @@ public class Dimension {
         attributes=new ArrayList<Attribute>();
     }
 
+    public Dimension(Dimension dimension) {
+        dimension_name=dimension.dimension_name;
+        dimension_privacy_score=dimension.dimension_privacy_score;
+        dimension_visibility_overall=dimension.dimension_visibility_overall;
+        dimension_level_of_control=dimension.dimension_level_of_control;
+        dimension_visibility_label=dimension.dimension_visibility_label;
+        dimension_visibility_actual_audience=dimension.dimension_visibility_actual_audience;
+        dimension_sensitivity=dimension.dimension_sensitivity;
+        attributes=new ArrayList<Attribute>();
+        for(Attribute attribute:dimension.attributes){
+            Attribute newAttribute=new Attribute(attribute);
+            attributes.add(newAttribute);
+        }
+    }
     
     public Attribute addAttribute(String attribute_name, Boolean normalized){
 //        Attribute attribute=attributes.get(attribute_name);

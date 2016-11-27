@@ -3,6 +3,7 @@ package usemp.certh.scoring;
 import com.restfb.types.Message;
 import com.restfb.types.Photo;
 import com.restfb.types.Post;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -31,6 +32,23 @@ public class Support {
     private String support_description_du;
     private boolean support_is_main;
     private static Random rnd=new Random();
+    
+    
+    public Support(Support support) {
+        support_inference_mechanism = support.support_inference_mechanism;
+        support_data_pointer_ids=new ArrayList<String>();
+        for(String dpid:support.support_data_pointer_ids){
+            support_data_pointer_ids.add(dpid);
+        }
+        support_confidence = support.support_confidence;
+        support_level_of_control=support.support_level_of_control;
+        support_visibility=support.support_visibility;
+        support_visibility_label=support.support_visibility_label;
+        support_description_en= support.support_description_en;
+        support_description_du= support.support_description_du;
+        support_description_sw=support.support_description_sw;
+        support_is_main=support.support_is_main;
+    }    
     
     public Support(Constants.InferenceMechanism support_inference_mechanism, List<String> support_data_pointer_ids, Double support_confidence, String user_id, String support_description_en,String support_description_du,String support_description_sw,UserDataAccess user_data) {
         this.support_inference_mechanism = support_inference_mechanism;

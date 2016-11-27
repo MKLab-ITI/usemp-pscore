@@ -6,7 +6,7 @@ import usemp.certh.inference.preprepilot.Classification;
 import usemp.certh.inference.preprepilot.PrePilotClassifier;
 import usemp.certh.inference.urlclassifier.URLClassifier;
 import usemp.certh.inference.visualconceptsclassifier.VisualConceptsClassifier;
-import usemp.certh.scoringvisualization.ScoringVisualization;
+import usemp.certh.visualizations.Visualizations;
 import usemp.certh.userDataAccess.UserDataAccess;
 import usemp.certh.userDataAccess.UserDataAccessFromFile;
 
@@ -19,6 +19,7 @@ import usemp.certh.userDataAccess.UserDataAccessFromFile;
  * - Subsequently they are passed through the four different inference modules
  *   (or three if no visual concepts are available)
  * - The inference modules update the disclosure scores of a user
+ * - The two versions of the list with the control suggestions are computed
  * - A web based visualization shows the disclosure scores of the user
  *   (the version of the visualization shown here is somewhat limited in
  *    the sense that the sensitivity cannot change, this would require a 
@@ -28,12 +29,12 @@ import usemp.certh.userDataAccess.UserDataAccessFromFile;
 public class Main {
  
     public static void main(String[] args){
-        String accessToken="EAACEdEose0cBAMxmMEPrGVFdze7DCjCriprD4pVEqrHHotd2iEOUUQz1X1wTIe21KBRrERu2AZCEDtIrru8dsuFDbDCA6vJutuEZCNT2veZCQtKSlWEdmRMut6RZBzZAR0ltxBZCIMZAo5QQFYMbqJZBS7eVsZB7oeOXX1090XZCTBdAZDZD";
-        String targetDir="/myFacebookData/";
+        String accessToken="EAACEdEose0cBAOYCwZCxVlMchqjVJ2dAoGwFTBmCAK6zKFHDZCt7cYBrak5jYLQTdLxZC4qkpjPJIbZCngN8ZAdKfvWGjMgx2RlNAIQVrPBkJZAI7J7KhsBADvR27xaGZAKLShv8RUxpyDPTkddQr9CRZCcyOuYxrZAMecq1BsSS83QZDZD";
+        String targetDir="/myFacebookDataNew/";
 
         //We first fetch all the user's data from Facebook and store them in 
         //files in the directory specified in the variable targetDir
-        FacebookPersonalDataFetcher.fetchData(accessToken, targetDir);
+        //FacebookPersonalDataFetcher.fetchData(accessToken, targetDir);
         System.out.println("Fetched data from Facebook and saved to files!");
                 
         //This is the object that allows access to the user's data.
@@ -82,13 +83,24 @@ public class Main {
         user_data.saveScoringUser();
         System.out.println("Saved scoring user");
 
+        //Then compute and save the first kind of control suggestions
+        user_data.saveControlSuggestionSet();
+        System.out.println("Control suggestions based on results of item-based inferences computed");
+        
+        //Then compute and save the second kind of control suggestions
+        user_data.saveControlSuggestionSetExtended(prepilotClassifier);
+        System.out.println("Control suggestions based on results of all inferences computed (iterative method)");
+        
+        
         //Finally, the files for a web based visualization of the 
         //disclosure scores are copied into the directory where the files
         //with the facebook data are stored.
         //In order to see it, please open the file [targetDir]/visualization/USEMP.htm 
-        ScoringVisualization scoringVisualization=new ScoringVisualization();
-        scoringVisualization.copyVisualizationFiles(targetDir);
+        Visualizations visualizations=new Visualizations();
+        visualizations.copyVisualizationFiles(targetDir);
         System.out.println("Visualization files copied");
+  
+        
         
     }
     

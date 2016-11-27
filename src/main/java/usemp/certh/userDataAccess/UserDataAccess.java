@@ -8,6 +8,9 @@ import com.restfb.types.StatusMessage;
 import com.restfb.types.User;
 import java.util.HashMap;
 import java.util.HashSet;
+import usemp.certh.inference.preprepilot.PrePilotClassifier;
+import usemp.certh.scoring.ControlSuggestionSet;
+import usemp.certh.scoring.ControlSuggestionSetExtended;
 import usemp.certh.scoring.ScoringUser;
 
 /**
@@ -56,5 +59,19 @@ public interface UserDataAccess {
     public HashMap<String,Double> getVisualConceptsMaxConfidence();
 
     public HashMap<String,String> getVisualConceptsMaxConfidenceImage();
+    
+    public ControlSuggestionSet getControlSuggestionSet();
+    
+    public void saveControlSuggestionSet();
+
+    public ControlSuggestionSetExtended getControlSuggestionSetExtended(PrePilotClassifier ppc);
+    
+    public void saveControlSuggestionSetExtended(PrePilotClassifier ppc);
+    
+    public HashMap<String,Double> getPhotoConcepts(String id);
+ 
+    public String getImageFilemane(String id);
+
+    public void setScoringUser(ScoringUser scoringUser);
     
 }

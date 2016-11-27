@@ -23,6 +23,9 @@ import java.util.HashSet;
 import java.util.List;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
+import usemp.certh.inference.preprepilot.PrePilotClassifier;
+import usemp.certh.scoring.ControlSuggestionSet;
+import usemp.certh.scoring.ControlSuggestionSetExtended;
 import usemp.certh.scoring.ScoringUser;
 import usemp.visual.images.Concept;
 import usemp.visual.images.Image;
@@ -44,6 +47,7 @@ public class UserDataAccessFromFile implements UserDataAccess {
     HashSet<Post> posts=null;
     HashSet<StatusMessage> statuses=null;
     HashSet<Photo> photos=null;
+    List<Image> images = null;
     HashSet<Album> albums=null;
     HashSet<User> friends=null;
     ScoringUser scoringUser=null;
@@ -52,13 +56,18 @@ public class UserDataAccessFromFile implements UserDataAccess {
     HashMap<String,Double> conceptsTotalConfidence=null;
     HashMap<String,Double> conceptsConfidenceMax=null;
     HashMap<String,String> conceptsConfidenceMaxImage=null;
-    
+    ControlSuggestionSet controlSuggestionSet=null;
+    ControlSuggestionSetExtended controlSuggestionSetExtended=null;
+    HashMap<String,HashMap<String,Double>> perPhotoConcepts=null;
     
     public UserDataAccessFromFile(String _directory) {
         directory=_directory;
-        
     }
     
+    public HashMap<String,Double> getPhotoConcepts(String id){
+        return perPhotoConcepts.get(id);
+    }
+
     public HashSet<Page> getAllLikes(){
         if(likes==null){
             likes=new HashSet<Page>();
@@ -276,6 +285,45 @@ public class UserDataAccessFromFile implements UserDataAccess {
         }
     }
     
+    public void saveControlSuggestionSet(){
+        if(controlSuggestionSet==null)
+            controlSuggestionSet=scoringUser.computeControlSuggestionSet(this);
+        if(controlSuggestionSet!=null){
+            String filename=directory+"myControlSuggestionSetPlain.json";
+            try{
+                BufferedWriter bw = new BufferedWriter(
+                    new OutputStreamWriter(new FileOutputStream(filename), "UTF8"));
+                ObjectMapper mapper = new ObjectMapper();
+                String controlString=controlSuggestionSet.toJSonString();
+                bw.append(controlString);
+                bw.close();
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    public void saveControlSuggestionSetExtended(PrePilotClassifier ppc){
+        if(controlSuggestionSetExtended==null)
+            controlSuggestionSetExtended=scoringUser.computeControlSuggestionSetExtended(this,ppc);
+        if(controlSuggestionSetExtended!=null){
+            String filename=directory+"myControlSuggestionSetExtended.json";
+            try{
+                BufferedWriter bw = new BufferedWriter(
+                    new OutputStreamWriter(new FileOutputStream(filename), "UTF8"));
+                ObjectMapper mapper = new ObjectMapper();
+                String controlString=controlSuggestionSetExtended.toJSonString();
+                bw.append(controlString);
+                bw.close();
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    
     public User getUser(){
         if(user==null){
             String filename=directory+"myDetails.json";
@@ -306,14 +354,28 @@ public class UserDataAccessFromFile implements UserDataAccess {
         return conceptsTotalConfidence;
     }
 
+    public ControlSuggestionSet getControlSuggestionSet(){
+        if(controlSuggestionSet==null)
+            scoringUser.computeControlSuggestionSet(this);
+        return controlSuggestionSet;
+    }
+    
+    public ControlSuggestionSetExtended getControlSuggestionSetExtended(PrePilotClassifier ppc){
+        if(controlSuggestionSetExtended==null)
+            scoringUser.computeControlSuggestionSetExtended(this, ppc);
+        return controlSuggestionSetExtended;
+    }
+    
     private void loadImagesData(){
         conceptsFrequency=new HashMap<String, Integer>();
         conceptsTotalConfidence= new HashMap<String,Double>();
         conceptsConfidenceMax=new HashMap<String,Double>();
         conceptsConfidenceMaxImage=new HashMap<String,String>();
-        String filename=directory+"concepts.xml";
+        perPhotoConcepts=new HashMap<String,HashMap<String,Double>>();
+        String filename=directory+"images.xml";
         File imagesFile = new File(filename);
         if (imagesFile.exists()) {
+                    
             try{
                 InputStream imageconcepts = new BufferedInputStream(new FileInputStream(filename));
 
@@ -323,13 +385,18 @@ public class UserDataAccessFromFile implements UserDataAccess {
 
                 imageconcepts.close();
 
-                List<Image> images = vd.getImage();
+                images = vd.getImage();
 
-                System.out.println("Num images:" + images.size());
                 for (Image i : images) {
                     List<Concept> concepts = i.getConcept();
-                    for (Concept ct : concepts) {
+                    HashMap<String,Double> photoConcepts=getPhotoConcepts(i.getId());
+                    if(photoConcepts==null){
+                        photoConcepts=new HashMap<String,Double>();
+                        perPhotoConcepts.put(i.getId(), photoConcepts);
+                    }
 
+                    for (Concept ct : concepts) {
+                        photoConcepts.put(ct.getName(), ct.getConfidence().doubleValue());
                         Integer frequency=conceptsFrequency.get(ct.getName());
                         if(frequency==null)
                             conceptsFrequency.put(ct.getName(), 1);
@@ -370,5 +437,18 @@ public class UserDataAccessFromFile implements UserDataAccess {
         return conceptsConfidenceMaxImage;
         
     }
+
+    public String getImageFilemane(String id){
+        for(Image image:images){
+            if(image.getId().equals(id)) return image.getPath();
+        }
+        return null;
+    }
+
+    public void setScoringUser(ScoringUser scoringUser) {
+        this.scoringUser = scoringUser;
+    }
+
+    
     
 }

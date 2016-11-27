@@ -37,7 +37,21 @@ public class Attribute {
         values=new ArrayList<Value>();
     }
     
-    
+    public Attribute(Attribute attribute) {
+        normalized=attribute.normalized;
+        attribute_name=attribute.attribute_name;
+        attribute_level_of_control=attribute.attribute_level_of_control;
+        attribute_visibility_label=attribute.attribute_visibility_label;
+        attribute_sensitivity=attribute.attribute_sensitivity;
+        attribute_visibility_actual_audience=attribute.attribute_visibility_actual_audience;
+        attribute_privacy_score=attribute.attribute_privacy_score;
+        values=new ArrayList<Value>();
+        for(Value value:attribute.values){
+            Value newValue=new Value(value);
+            values.add(value);
+        }
+    }
+        
     public Value addValue(String value_name){
   //      Value value=values.get(value_name);
         Value value=null;
@@ -162,7 +176,10 @@ public class Attribute {
                 value.computeScores();
             else
                 toDelete.add(value);
+           
         }
+//        if(toDelete.size()>0)
+//            System.out.println("Deleting values: "+toDelete.size());
         values.removeAll(toDelete); 
         aggregatePrivacyScores(values);
         aggregateVisibilityOverall(values);

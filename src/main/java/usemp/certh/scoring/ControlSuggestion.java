@@ -1,12 +1,23 @@
+/*
+ * Copyright 2016 gpetkos.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package usemp.certh.scoring;
 
 /**
  *
  * @author gpetkos
- * 
- * This is not currently used in the demo but will be in the next version 
- * that will be uploaded soon
- * 
  */
 public class ControlSuggestion {
     String id;
@@ -18,6 +29,7 @@ public class ControlSuggestion {
     String description_en;
     String description_du;
     String description_sw;
+    String pointer;
 
     public ControlSuggestion(String id, String dimension, String attribute, String value, Double confidence, Double score, String description_en, String description_du, String description_sw) {
         this.id = id;
@@ -105,6 +117,12 @@ public class ControlSuggestion {
         this.description_sw = description_sw;
     }
 
-    
+    public String getPointer() {
+        return pointer;
+    }
+
+    public void setPointer(String pointer) {
+        this.pointer = pointer;
+    }
     
 }
