@@ -36,7 +36,7 @@ Please also note that, the implementation of the framework is flexible, so that 
 
 #How to run
 First, please download the following zip file that contains a number of model files and various static data files that are used by the code:
-https://www.dropbox.com/s/jz3730djl9gtr5w/pscore-resources.zip?dl=0
+https://www.dropbox.com/s/iagwg7uj217uf0n/pscore-resources.zip?dl=0
 Please unzip it in the /src/main/resources folder of the project. Unfortunately, the size of the files in the archive did not allow us to put them to github. Apologies for the inconvenience.
 
 Please note that code for fetching a user's data from Facebook and storing it to files is also provided. This can be found in the package usemp.certh.facebookpersonaldatafetcher . This is used in order for a user to be able to test the framework and inference modules with their own data. What is required is just a valid Facebook access token that can be obtained from the Graph API explorer:
