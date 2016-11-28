@@ -60,9 +60,9 @@ Please note that after execution the data directory will have the following cont
 - myPosts.json : The posts of the user.
 - myScores.json : The disclosure scores of the user in json format.
 - myStatuses.json : The status updates posted by the user.
-- concepts.xml : This xml files contains the visual concepts (ImageNet concepts) detected in the images of the user. As mentioned, this is not produced by the provided code. If it is available it will be taken into account by the code, otherwise results are still produced. For a sample file please see TODO...
+- images.xml : This xml file contains the visual concepts (ImageNet concepts) detected in the images of the user. As mentioned, this is not produced by the provided code. If it is available it will be taken into account by the code, otherwise results are still produced. For a sample file please see the sample data for which the link is provided below.
 - photos: This directory contains the images of the user.
-- visualization : This directory contains the visualization of the user's scores. Please open the file USEMP.htm that can be found inside it.
+- visualization : This directory contains the visualizations of the user's scores and control suggestions. 
 
 A sample directory with mock data can be found here https://www.dropbox.com/s/wjclos47twwnagl/myFacebookData.zip?dl=0
 
