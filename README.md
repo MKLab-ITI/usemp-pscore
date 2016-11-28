@@ -1,9 +1,10 @@
 # usemp-pscore
 Implementation of the USEMP disclosure scoring framework and inference modules.
 
-This package Java code for:
+This package contains Java code for:
 - The USEMP disclosure scoring framework (PScore).  
 - Four inference modules that work on social network data and predict a number of personal attributes.
+- Two disclosure control assistance methods. These select pieces of content that the user is advised to reconsider sharing. 
 - Fetching the data of a Facebook user and saving it to a number of files.
 - A full example in which the data of a user is fetched from Facebook and passed through the inference modules. The inference modules feed the results in the disclosure scoring framework and eventually the disclosure scores of the user are shown through a web-page visualization.
 
