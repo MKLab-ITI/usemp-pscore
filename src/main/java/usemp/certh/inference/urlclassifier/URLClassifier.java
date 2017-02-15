@@ -136,7 +136,7 @@ public class URLClassifier {
             String urlS=url;
             if(!urlS.contains("://")) urlS="http://"+urlS;
             if(!urlS.endsWith("/")) urlS=urlS+"/";
-            HashSet<String> privacyValues=mapping.get(urls);
+            HashSet<String> privacyValues=mapping.get(urlS);
             if(privacyValues==null){
                 try{
                     URL urlO=new URL(urlS);
