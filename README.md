@@ -37,7 +37,7 @@ Please also note that, the implementation of the framework is flexible, so that 
 
 #How to run
 First, please download the following zip file that contains a number of model files and various static data files that are used by the code:
-https://www.dropbox.com/s/eer75vtvj70oj2q/pscore-resources.zip?dl=0
+http://mklab.iti.gr/resources/pscore-resources.zip
 Please unzip it in the /src/main/resources folder of the project. Unfortunately, the size of the files in the archive did not allow us to put them to github. Apologies for the inconvenience.
 
 Please note that code for fetching a user's data from Facebook and storing it to files is also provided. This can be found in the package usemp.certh.facebookpersonaldatafetcher . This is used in order for a user to be able to test the framework and inference modules with their own data. What is required is just a valid Facebook access token that can be obtained from the Graph API explorer:
@@ -64,5 +64,5 @@ Please note that after execution the data directory will have the following cont
 - photos: This directory contains the images of the user.
 - visualization : This directory contains the visualizations of the user's scores and control suggestions. 
 
-A sample directory with mock data can be found here https://www.dropbox.com/s/t3ym7hx9c4i6d2p/myFacebookData.zip?dl=0
+A sample directory with mock data can be found here http://mklab.iti.gr/resources/myFacebookData.zip
 
